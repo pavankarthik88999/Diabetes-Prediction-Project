@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction System</title>
+    <style>
+        /* CSS Reset and Global Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8; /* Soft off-white for contrast */
+            color: #001f3f; /* Deep Navy Blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Main Container */
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 31, 63, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Typography */
+        h1 {
+            text-align: center;
+            color: #001f3f; /* Navy Blue */
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* Form Grid Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Input Groups */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #001f3f;
+        }
+
+        .input-group input {
+            padding: 12px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        /* Input Hover & Focus Effects */
+        .input-group input:hover {
+            border-color: #003366;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #001f3f;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0, 31, 63, 0.15);
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            background-color: #001f3f; /* Navy Blue */
+            color: #ffffff;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 31, 63, 0.2);
+        }
+
+        /* Button Hover & Active Effects */
+        .submit-btn:hover {
+            background-color: #003366; /* Lighter Navy */
+            box-shadow: 0 6px 12px rgba(0, 31, 63, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 31, 63, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Diabetes Prediction System</h1>
+        <p class="subtitle">Enter the patient's medical details below to generate a prediction.</p>
+
+        <form action="/predict" method="POST">
+            <div class="form-grid">
+                <!-- Row 1 -->
+                <div class="input-group">
+                    <label for="pregnancies">Pregnancies</label>
+                    <input type="number" id="pregnancies" name="pregnancies" required placeholder="e.g. 1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="glucose">Glucose Level</label>
+                    <input type="number" id="glucose" name="glucose" required placeholder="e.g. 85">
+                </div>
+
+                <!-- Row 2 -->
+                <div class="input-group">
+                    <label for="bloodPressure">Blood Pressure (mm Hg)</label>
+                    <input type="number" id="bloodPressure" name="bloodPressure" required placeholder="e.g. 66">
+                </div>
+
+                <div class="input-group">
+                    <label for="skinThickness">Skin Thickness (mm)</label>
+                    <input type="number" id="skinThickness" name="skinThickness" required placeholder="e.g. 29">
+                </div>
+
+                <!-- Row 3 -->
+                <div class="input-group">
+                    <label for="insulin">Insulin (mu U/ml)</label>
+                    <input type="number" id="insulin" name="insulin" required placeholder="e.g. 0">
+                </div>
+
+                <div class="input-group">
+                    <label for="bmi">BMI</label>
+                    <input type="number" step="0.1" id="bmi" name="bmi" required placeholder="e.g. 26.6">
+                </div>
+
+                <!-- Row 4 -->
+                <div class="input-group">
+                    <label for="dpf">Diabetes Pedigree Function</label>
+                    <input type="number" step="0.001" id="dpf" name="dpf" required placeholder="e.g. 0.351">
+                </div>
+
+                <div class="input-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" required placeholder="e.g. 31">
+                </div>
+            </div>
+
+            <!-- <button type="submit" class="submit-btn">Run Prediction</button> -->
+            <button type="submit" class="submit-btn">Run Prediction</button>
+
+        <!-- ADD THIS BLOCK RIGHT HERE -->
+        {% if prediction_text %}
+        <div style="margin-top: 20px; padding: 15px; background-color: #001f3f; border-radius: 6px; text-align: center; color: #ffffff; font-weight: bold; font-size: 18px;">
+            {{ prediction_text }}
+        </div>
+        {% endif %}
+        </form>
+    </div>
+
+</body>
+</html>
