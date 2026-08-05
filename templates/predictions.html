@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History - Diabetes Prediction System{% endblock %}
+{% block container_class %}wide{% endblock %}
+
+{% set total = rows | length %}
+{% set high = rows | selectattr('prediction', 'equalto', 1) | list | length %}
+{% set low = total - high %}
+
+{% block content %}
+<div class="card">
+    <h1>Prediction History</h1>
+    <p class="subtitle">All predictions recorded by the system.</p>
+
+    <div class="stats">
+        <div class="stat"><div class="n">{{ total }}</div><div class="l">Total Predictions</div></div>
+        <div class="stat"><div class="n" style="color:#ef4444;">{{ high }}</div><div class="l">High Risk</div></div>
+        <div class="stat"><div class="n" style="color:#16a34a;">{{ low }}</div><div class="l">Low Risk</div></div>
+        <div class="stat"><div class="n">{{ ((high / total * 100) | round(0) | int) if total else 0 }}%</div><div class="l">High Risk Rate</div></div>
+    </div>
+
+    {% if total %}
+    <div class="card" style="box-shadow:none; background:#f8fafc; margin-bottom:24px;">
+        <h2>Risk Distribution</h2>
+        <div style="max-width:320px; margin:0 auto;">
+            <canvas id="distChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Preg</th>
+                    <th>Glucose</th>
+                    <th>BP</th>
+                    <th>Skin</th>
+                    <th>Insulin</th>
+                    <th>BMI</th>
+                    <th>DPF</th>
+                    <th>Age</th>
+                    <th>Risk %</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ row.user_name }}</td>
+                    <td>{{ row.pregnancies }}</td>
+                    <td>{{ row.glucose }}</td>
+                    <td>{{ row.blood_pressure }}</td>
+                    <td>{{ row.skin_thickness }}</td>
+                    <td>{{ row.insulin }}</td>
+                    <td>{{ row.bmi }}</td>
+                    <td>{{ row.dpf }}</td>
+                    <td>{{ row.age }}</td>
+                    <td>{{ (row.probability | round(1)) if row.probability is not none else '—' }}</td>
+                    <td>
+                        {% if row.prediction == 1 %}
+                            <span class="badge high">High Risk</span>
+                        {% else %}
+                            <span class="badge low">Low Risk</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="text-align: center; color: var(--muted); padding: 30px;">No predictions recorded yet.</p>
+    {% endif %}
+
+    <div style="margin-top: 24px;">
+        <a href="{{ url_for('predict') }}" class="btn btn-primary" style="width:auto;">New Prediction</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if total %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    new Chart(document.getElementById('distChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['High Risk', 'Low Risk'],
+            datasets: [{
+                data: [{{ high }}, {{ low }}],
+                backgroundColor: ['#ef4444', '#16a34a'],
+                borderWidth: 2,
+                borderColor: '#fff',
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } },
+            cutout: '60%',
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

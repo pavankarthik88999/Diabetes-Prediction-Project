@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Diabetes Prediction System{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0b1f3a;
+            --navy-2: #12305c;
+            --accent: #14b8a6;
+            --accent-2: #0ea5e9;
+            --danger: #ef4444;
+            --success: #16a34a;
+            --bg: #eef2f7;
+            --card: #ffffff;
+            --text: #0b1f3a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; }
+
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; }
+
+        a { text-decoration: none; }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, var(--navy) 0%, var(--navy-2) 100%);
+            color: #fff;
+            padding: 14px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 12px rgba(11, 31, 58, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .navbar .brand { font-size: 19px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .navbar .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(20,184,166,.25); }
+
+        .nav-links { display: flex; align-items: center; gap: 8px; }
+        .nav-links a {
+            color: #cbd5e1; font-size: 14px; font-weight: 600;
+            padding: 8px 14px; border-radius: 8px; transition: all .2s ease;
+        }
+        .nav-links a:hover { color: #fff; background: rgba(255,255,255,.08); }
+        .nav-links a.logout { color: #fecaca; }
+        .nav-links a.logout:hover { background: rgba(239,68,68,.15); color: #fff; }
+
+        /* Layout */
+        .page { display: flex; justify-content: center; align-items: flex-start; padding: 36px 20px; }
+        .container { width: 100%; max-width: 900px; }
+        .container.narrow { max-width: 440px; }
+        .container.wide { max-width: 1080px; }
+
+        .card {
+            background: var(--card);
+            padding: 36px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(11, 31, 58, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+        h2 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+        p.subtitle { color: var(--muted); margin-bottom: 26px; font-size: 14px; }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 26px; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 16px; }
+        .input-group label { font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+        .input-group input {
+            padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+            font-size: 14px; background: #f8fafc; transition: all .2s ease;
+        }
+        .input-group input:hover { border-color: var(--accent); }
+        .input-group input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(20,184,166,.15); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 13px 22px; border: none; border-radius: 10px; font-size: 15px;
+            font-weight: 700; cursor: pointer; transition: all .2s ease; text-decoration: none;
+        }
+        .btn-primary { width: 100%; background: linear-gradient(90deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; box-shadow: 0 6px 16px rgba(11,31,58,.25); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(11,31,58,.32); }
+        .btn-primary:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-accent:hover { background: #0f9a8c; }
+        .btn-secondary { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+        .btn-secondary:hover { background: var(--navy); color: #fff; }
+        .btn-ghost { background: #f1f5f9; color: var(--navy); }
+        .btn-ghost:hover { background: #e2e8f0; }
+
+        .muted-link { display: block; text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+        .muted-link a { color: var(--accent-2); font-weight: 600; }
+
+        /* Flash */
+        .flash { padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 14px; font-weight: 600; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.error { background: #fee2e2; color: #991b1b; }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { background: var(--navy); color: #fff; font-weight: 600; }
+        tbody tr:hover td { background: #f8fafc; }
+        .badge { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; display: inline-block; }
+        .badge.high { background: #fee2e2; color: #991b1b; }
+        .badge.low { background: #dcfce7; color: #166534; }
+
+        /* Stat cards */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+        .stat .n { font-size: 26px; font-weight: 800; }
+        .stat .l { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+        .footer { text-align: center; color: var(--muted); font-size: 13px; padding: 20px; }
+
+        @media (max-width: 560px) {
+            .navbar { padding: 12px 16px; }
+            .card { padding: 22px; }
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="brand"><span class="dot"></span>Diabetes Prediction System</a>
+        <div class="nav-links">
+            {% if session.get('user_id') %}
+                {% if request.endpoint != 'predict' %}<a href="{{ url_for('predict') }}">New Prediction</a>{% endif %}
+                {% if request.endpoint not in ['predictions', 'result'] %}<a href="{{ url_for('predictions') }}">View Predictions</a>{% endif %}
+                <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="container {% block container_class %}{% endblock %}">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="footer">Diabetes Prediction System &middot; Machine Learning powered risk assessment</div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

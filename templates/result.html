@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% set prob = (r.probability if r.probability is not none else r.prediction * 100) %}
+{% set high = (r.prediction == 1) %}
+
+{% block title %}Prediction Report - Diabetes Prediction System{% endblock %}
+{% block container_class %}wide{% endblock %}
+
+{% block head_extra %}
+<style>
+    .report-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 6px; }
+    .report-grid { display: grid; grid-template-columns: 340px 1fr; gap: 22px; margin-top: 22px; }
+    @media (max-width: 820px) { .report-grid { grid-template-columns: 1fr; } }
+
+    .gauge-card { text-align: center; }
+    .gauge-wrap { position: relative; width: 240px; height: 240px; margin: 6px auto 10px; }
+    .gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .gauge-center .pct { font-size: 40px; font-weight: 800; line-height: 1; }
+    .gauge-center .cap { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+
+    .risk-banner { border-radius: 14px; padding: 18px 22px; font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .risk-banner.high { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .risk-banner.low { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .risk-banner .emoji { font-size: 26px; }
+
+    .summary-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .summary-table td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
+    .summary-table td:last-child { text-align: right; font-weight: 700; }
+
+    .interpret { font-size: 14px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="report-head">
+        <div>
+            <h1>Prediction Report</h1>
+            <p class="subtitle" style="margin:0;">Generated on {{ r.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+        </div>
+        <span class="badge {{ 'high' if high else 'low' }}" style="font-size:14px; padding:8px 18px;">
+            {{ 'High Risk' if high else 'Low Risk' }}
+        </span>
+    </div>
+
+    <div class="risk-banner {{ 'high' if high else 'low' }}">
+        <span class="emoji">{{ '⚠️' if high else '✅' }}</span>
+        {{ r.result_text.replace('The model predicts: ', '') }}
+    </div>
+
+    <div class="report-grid">
+        <!-- Risk gauge -->
+        <div class="card gauge-card" style="box-shadow:none; background:#f8fafc;">
+            <h2>Risk Probability</h2>
+            <div class="gauge-wrap">
+                <canvas id="gaugeChart"></canvas>
+                <div class="gauge-center">
+                    <span class="pct" style="color: {{ '#ef4444' if high else '#16a34a' }};">{{ prob | round(1) }}%</span>
+                    <span class="cap">Diabetes Risk</span>
+                </div>
+            </div>
+            <p class="interpret">
+                The model estimates a <strong>{{ prob | round(1) }}%</strong> probability that this
+                patient has diabetes, classified as <strong>{{ 'high' if high else 'low' }} risk</strong>.
+            </p>
+        </div>
+
+        <!-- Comparison + inputs -->
+        <div class="card" style="box-shadow:none; background:#f8fafc;">
+            <h2>Patient vs. Healthy Reference</h2>
+            <canvas id="compareChart" height="150"></canvas>
+        </div>
+    </div>
+
+    <div class="card" style="box-shadow:none; background:#f8fafc; margin-top:22px;">
+        <h2>Entered Values</h2>
+        <table class="summary-table">
+            <tr><td>Pregnancies</td><td>{{ r.pregnancies }}</td></tr>
+            <tr><td>Glucose Level (mg/dL)</td><td>{{ r.glucose }}</td></tr>
+            <tr><td>Blood Pressure (mm Hg)</td><td>{{ r.blood_pressure }}</td></tr>
+            <tr><td>Skin Thickness (mm)</td><td>{{ r.skin_thickness }}</td></tr>
+            <tr><td>Insulin (mu U/ml)</td><td>{{ r.insulin }}</td></tr>
+            <tr><td>BMI</td><td>{{ r.bmi }}</td></tr>
+            <tr><td>Diabetes Pedigree Function</td><td>{{ r.dpf }}</td></tr>
+            <tr><td>Age</td><td>{{ r.age }}</td></tr>
+        </table>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('predict') }}" class="btn btn-primary" style="width:auto;">New Prediction</a>
+        <a href="{{ url_for('predictions') }}" class="btn btn-ghost">View All Predictions</a>
+    </div>
+
+    <p class="interpret" style="margin-top:20px;">
+        <strong>Disclaimer:</strong> This is an ML-based estimate for educational purposes only and is
+        not a medical diagnosis. Please consult a healthcare professional for clinical advice.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const prob = {{ prob | round(1) }};
+    const high = {{ 'true' if high else 'false' }};
+    const riskColor = high ? '#ef4444' : '#16a34a';
+
+    // Risk gauge (doughnut)
+    new Chart(document.getElementById('gaugeChart'), {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [prob, 100 - prob],
+                backgroundColor: [riskColor, '#e2e8f0'],
+                borderWidth: 0,
+                circumference: 360,
+            }]
+        },
+        options: {
+            cutout: '75%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            responsive: true,
+            maintainAspectRatio: true,
+        }
+    });
+
+    // Patient vs healthy reference comparison
+    new Chart(document.getElementById('compareChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Glucose', 'Blood Pressure', 'Skin Thickness', 'Insulin', 'BMI', 'Pedigree Fn'],
+            datasets: [
+                {
+                    label: 'Patient',
+                    data: [
+                        {{ r.glucose }}, {{ r.blood_pressure }}, {{ r.skin_thickness }},
+                        {{ r.insulin }}, {{ r.bmi }}, {{ r.dpf }}
+                    ],
+                    backgroundColor: riskColor,
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Healthy Reference',
+                    data: [90, 80, 23, 90, 22, 0.4],
+                    backgroundColor: '#94a3b8',
+                    borderRadius: 6,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}
