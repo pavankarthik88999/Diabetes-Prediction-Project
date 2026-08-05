@@ -1,0 +1,36 @@
+name: Launch Application
+
+on:
+  push:
+    branches:
+      - main  # Triggers when you push to the main branch
+  workflow_dispatch: # Allows you to launch manually via a click on GitHub
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Boot Application with Environment Variables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          PREDICTIONS_PASSCODE: ${{ secrets.PREDICTIONS_PASSCODE }}
+        run: |
+          # Boot the Flask app to verify it starts with the injected secrets.
+          # (A GitHub Actions runner is ephemeral, so this validates startup
+          #  rather than hosting a public server — see notes in chat.)
+          python -c "import app; rules = sorted(r.rule for r in app.app.url_map.iter_rules()); print('App booted OK. Routes:', rules)"
