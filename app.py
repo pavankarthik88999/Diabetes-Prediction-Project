@@ -17,9 +17,9 @@ from psycopg.rows import dict_row
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
 
-from db import get_connection, init_db
-
 load_dotenv()
+
+from db import get_connection, init_db
 
 # 1. Initialize the Flask application
 app = Flask(__name__)
@@ -233,4 +233,4 @@ def predictions():
 
 # 5. Run the application
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
